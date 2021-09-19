@@ -1,0 +1,15 @@
+aiohttp==3.7.4.post0
+aioredis==2.0.0
+async-timeout==3.0.1
+attrs==21.2.0
+certifi==2021.5.30
+chardet==4.0.0
+idna==3.2
+jplephem==2.16
+multidict==5.1.0
+numpy==1.21.2
+sgp4==2.20
+skyfield==1.39
+typing-extensions==3.10.0.2
+ujson==4.1.0
+yarl==1.6.3
