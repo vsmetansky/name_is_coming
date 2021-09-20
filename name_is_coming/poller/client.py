@@ -53,6 +53,7 @@ class SpaceTrackClient(Client):
     async def _fetch(self) -> Tuple[Dict[str, str]]:
         response = await self._session.get(self._poll_url)
         data = await response.json(loads=ujson.loads)
+        logger.info(f'fetched {len(data)} datapoints')
         return self._normalize(data)
 
     @staticmethod

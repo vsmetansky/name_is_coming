@@ -26,8 +26,7 @@ class RedisCache:
         grouped = defaultdict(deque)
 
         for entry in entries:
-            object_name, = entry.keys()
-            tle_value, = entry.values()
+            (object_name, tle_value), = entry.items()
             grouped[object_name].append(tle_value)
 
         return {name: entries.pop() for name, entries in grouped.items()}
