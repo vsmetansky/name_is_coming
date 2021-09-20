@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from argparse import Namespace, ArgumentParser
 
 import uvloop
 
@@ -10,15 +11,28 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def get_args() -> Namespace:
+    parser = ArgumentParser()
+
+    parser.add_argument('--run-forever', dest='run_forever', action='store_true')
+    parser.add_argument('--clear-cache', dest='clear_cache', action='store_true')
+
+    return parser.parse_args()
+
+
 async def entrypoint():
-    uvloop.install()
+    args = get_args()
 
     service = Service(
         settings.REDIS_URL,
-        settings.CACHE_RETENTION,
-        settings.API_POLL_URL,
+        settings.API_POLL_URL_TMPL,
         settings.API_AUTH_URL,
         settings.API_AUTH_CREDS,
+        settings.API_POLL_INTERVAL,
+        settings.API_POLL_LOOKBACK,
+        settings.API_POLL_LOOKBACK_WHEN_EMPTY,
+        args.run_forever,
+        args.clear_cache
     )
 
     try:
