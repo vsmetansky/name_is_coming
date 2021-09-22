@@ -197,6 +197,7 @@ topo_sphere=dict(type='surface',
   y=ys,
   z=zs,
   colorscale=Ctopo,
+  lighting=dict(ambient=0.3),
   surfacecolor=topo,
   cmin=cmin,
   cmax=cmax)
@@ -234,38 +235,54 @@ Y.append(1)
 Z = deque(maxlen=200)
 Z.append(1)
 
-df = px.data.iris()
+debris=dict(type='scatter3d',
+                 x=[],
+                 y=[],
+                 z=[],
+                 mode='lines+markers',
+                 line=dict(color='white', width=3)
+                )
+
+
+
+plot_data=[debris, boundaries, topo_sphere]
+figure = go.Figure(data=plot_data, layout=layout)
+
+
+
 
 app = dash.Dash(__name__)
 
-app.layout = html.Div([
-    dcc.Graph(id="scatter-plot"),
-    html.P("Petal Width:"),
-    dcc.Interval(
-            id='graph-update',
-            interval=1*10000
-        ),
-])
+app.layout = html.Div([dcc.Graph(id='scatter-plot', figure=figure), dcc.Interval(id="interval", interval = 1*10000)])
+
+#app.layout = html.Div([
+#    dcc.Graph(id="scatter-plot", animate=True),
+#    html.P("Petal Width:"),
+#    dcc.Interval(
+#            id='graph-update',
+#            interval=1*10000
+#        ),
+#])
 
 @app.callback(
-    Output("scatter-plot", "figure"),
-    [Input("graph-update", "n_intervals")])
-def update_bar_chart(input_data):
+    Output("scatter-plot", "extendData"),
+    [Input("interval", "n_intervals")])
+def update_data(n_intervals):
 
 
-    X.append(X[-1]+X[-1]*random.uniform(0.1,0.2))
-    Y.append(Y[-1]+Y[-1]*random.uniform(0.1,0.2))
-    Z.append(Z[-1]+Z[-1]*random.uniform(0.1,0.2))
-    debris=dict(type='scatter3d',
-                   x=list(X),
-                   y=list(Y),
-                   z=list(Z),
-                   mode='lines+markers',
-                   line=dict(color='white', width=3)
-                  )
+    X = 1 + random.uniform(0.5,1)
+    Y = 1 + random.uniform(0.5,1)
+    Z = 1 + random.uniform(0.5,1)
+  #  debris=dict(type='scatter3d',
+  #                 x=list(X),
+  #                 y=list(Y),
+  #                 z=list(Z),
+  #                 mode='lines+markers',
+  #                 line=dict(color='white', width=3)
+  #                )
 
 
-    plot_data=[topo_sphere, boundaries, debris]
-    fig = go.Figure(data=plot_data, layout=layout)
-    return fig
-app.run_server(debug=True, port= 8012)
+
+    #return dict([dict(x=[xs],  y=[ys], z=[zs]), dict(x=[xs_bd], y=[ys_bd], z=[zs_bd]), dict(x=[X], y=[Y], z=[Z])])
+    return dict(x=[[X]], y=[[Y]], z=[[Z]])
+app.run_server(debug=True, port= 8000)
