@@ -15,8 +15,7 @@ def from_triplet(tle_0: str, tle_1: str, tle_2: str) -> Dict[str, str]:
     return {object_name: tle_value}
 
 
-def to_triplet(tle: Dict[str, str]) -> Tuple[str, ...]:
-    tle_value, = tle.values()
+def to_triplet(tle_value: str) -> Tuple[str, ...]:
     return tuple(tle_value.split(TLE_LINE_SEP))
 
 
