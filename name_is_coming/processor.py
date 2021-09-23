@@ -9,7 +9,11 @@ from skyfield.units import Angle, Distance
 from name_is_coming import settings
 from name_is_coming.storage.cache import RedisCacheSync
 from name_is_coming.tle import to_triplet
+import numpy as np
 
+
+def degree2radians(degree):
+  return degree*np.pi/180
 
 def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple[Angle, Angle, Distance]:
     satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
@@ -23,7 +27,15 @@ def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple
     geocentric = satellite.at(time_now)
     subpoint = wgs84.subpoint(geocentric)
 
-    return subpoint.latitude, subpoint.longitude, subpoint.elevation.km
+
+    lat = degree2radians(subpoint.latitude.degrees)
+    lon = degree2radians(subpoint.longitude.degrees)
+    h = 6371 + subpoint.elevation.km
+    x=h*np.cos(lon)*np.cos(lat)
+    y=h*np.sin(lon)*np.cos(lat)
+    z=h*np.sin(lat)
+
+    return x, y, z#6371*degree2radians(subpoint.latitude.degrees), degree2radians(subpoint.longitude.degrees), subpoint.elevation.km
 
 
 def process_once(ts: Timescale, cache: RedisCacheSync) -> List:
