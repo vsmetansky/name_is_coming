@@ -13,15 +13,10 @@ import numpy as np
 
 
 def degree2radians(degree):
-  return degree*np.pi/180
-
-def sat_name(ts: Timescale, tle_0: str, tle_1: str, tle_2: str):
-    satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
-    return satellite.name
+    return degree * np.pi / 180
 
 
-def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple[Angle, Angle, Distance]:
-    satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
+def current_location(ts: Timescale, satellite: EarthSatellite) -> Tuple[Angle, Angle, Distance]:
     time_now = ts.now()
 
     # Check if TLE valid
@@ -32,19 +27,31 @@ def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple
     geocentric = satellite.at(time_now)
     subpoint = wgs84.subpoint(geocentric)
 
-
     lat = degree2radians(subpoint.latitude.degrees)
     lon = degree2radians(subpoint.longitude.degrees)
     h = 6371 + subpoint.elevation.km
-    x=h*np.cos(lon)*np.cos(lat)
-    y=h*np.sin(lon)*np.cos(lat)
-    z=h*np.sin(lat)
+    x = h * np.cos(lon) * np.cos(lat)
+    y = h * np.sin(lon) * np.cos(lat)
+    z = h * np.sin(lat)
 
-    return x, y, z#6371*degree2radians(subpoint.latitude.degrees), degree2radians(subpoint.longitude.degrees), subpoint.elevation.km
+    # 6371*degree2radians(subpoint.latitude.degrees), degree2radians(subpoint.longitude.degrees), subpoint.elevation.km
+    return x, y, z
 
 
-def process_once(ts: Timescale, cache: RedisCacheSync) -> List:
-    return [current_location(ts, *to_triplet(entry)) for entry in cache.retrieve().values()], [sat_name(ts, *to_triplet(entry)) for entry in cache.retrieve().values()]
+def process_tle(tle: str, ts: Timescale, locations: List, names: List):
+    tle_0, tle_1, tle_2 = to_triplet(tle)
+    satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
+    locations.append(current_location(ts, satellite))
+    names.append(satellite.name)
+
+
+def process_once(ts: Timescale, cache: RedisCacheSync) -> Tuple[List, List]:
+    tles = cache.retrieve()
+    locations, names = [], []
+    for tle in tles.values():
+        process_tle(tle, ts, locations, names)
+
+    return locations, names
 
 
 def process(cache: RedisCacheSync) -> Generator[List[Tuple], None, None]:
