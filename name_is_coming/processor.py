@@ -15,7 +15,12 @@ import numpy as np
 def degree2radians(degree):
   return degree*np.pi/180
 
-def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple[Angle, Angle, Distance]:
+def sat_name(ts: Timescale, tle_0: str, tle_1: str, tle_2: str):
+    satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
+    return satellite.name
+
+
+def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple[x, y, z]:
     satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
     time_now = ts.now()
 
@@ -39,7 +44,7 @@ def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple
 
 
 def process_once(ts: Timescale, cache: RedisCacheSync) -> List:
-    return [current_location(ts, *to_triplet(entry)) for entry in cache.retrieve().values()]
+    return [current_location(ts, *to_triplet(entry)) for entry in cache.retrieve().values()], [sat_name(ts, *to_triplet(entry)) for entry in cache.retrieve().values()]
 
 
 def process(cache: RedisCacheSync) -> Generator[List[Tuple], None, None]:

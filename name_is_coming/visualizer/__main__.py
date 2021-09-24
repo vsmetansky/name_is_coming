@@ -1,5 +1,5 @@
 import dash
-from dash.dependencies import Output, Input
+from dash.dependencies import Output, Input, State
 from dash import html
 from dash import dcc
 import plotly
@@ -12,7 +12,7 @@ from skyfield.api import load, wgs84
 from skyfield.api import EarthSatellite
 from skyfield.api import load, wgs84
 import time
-
+from skimage import io
 
 import plotly.graph_objs as go
 from plotly.offline import plot
@@ -35,8 +35,6 @@ for monitor in get_monitors():
 from name_is_coming import settings
 from name_is_coming.processor import process
 from name_is_coming.storage.cache import RedisCacheSync
-
-
 
 
 def Etopo(lon_area, lat_area, resolution):
@@ -169,7 +167,7 @@ def get_country_traces():
     return country_lons, country_lats
 
 
-resolution = 0.8
+resolution = 1.6
 lon_area = [-180., 180.]
 lat_area = [-90., 90.]
 # Get mesh-shape topography data
@@ -207,7 +205,9 @@ boundaries=dict(type='scatter3d',
                y=ys_bd,
                z=zs_bd,
                mode='lines',
-               line=dict(color='white', width=1)
+               line=dict(color='white', width=1),
+               text = [],
+               hoverinfo="text"
               )
 
 topo_sphere=dict(type='surface',
@@ -215,11 +215,14 @@ topo_sphere=dict(type='surface',
   y=ys,
   z=zs,
   colorscale=Ctopo,
+  showscale = False,
   lighting=lighting_effects,
   lightposition = light_position,
   surfacecolor=topo,
   cmin=cmin,
-  cmax=cmax)
+  cmax=cmax,
+  text = [],
+  hoverinfo="text")
 
 noaxis=dict(showbackground=False,
   showgrid=False,
@@ -237,18 +240,36 @@ layout = go.Layout(
   title = 'Debris map',
   titlefont = dict(family='Courier New', color=titlecolor),
   showlegend = False,
+
   scene = dict(
-    xaxis = noaxis,
-    yaxis = noaxis,
-    zaxis = noaxis,
-  #  xaxis = dict(range=[-10000,10000]),
-  #  yaxis = dict(range=[-10000,10000]),
-  #  zaxis = dict(range=[-10000,10000]),
+    xaxis = dict(noaxis, showspikes=False),
+    yaxis = dict(noaxis, showspikes=False),
+    zaxis = dict(noaxis, showspikes=False),
+  #  showspikes = False,
     aspectmode='data'),
   paper_bgcolor = bgcolor,
   plot_bgcolor = bgcolor)
 
+cache = RedisCacheSync(settings.REDIS_URL)
+location_list, name_list = next(process(cache))
 
+cities_x = []
+cities_y = []
+cities_z = []
+#Vancouver
+cities_x.append(mapping_debris(-123.116226, 49.246292, 6371.5)[0])
+cities_y.append(mapping_debris(-123.116226, 49.246292, 6371.5)[1])
+cities_z.append(mapping_debris(-123.116226, 49.246292, 6371.5)[2])
+
+#Kyiv
+cities_x.append(mapping_debris(30.523333, 50.450001, 6371.5)[0])
+cities_y.append(mapping_debris(30.523333, 50.450001, 6371.5)[1])
+cities_z.append(mapping_debris(30.523333, 50.450001, 6371.5)[2])
+
+#Toronto
+cities_x.append(mapping_debris(-79.347015, 43.651070, 6371.5)[0])
+cities_y.append(mapping_debris(-79.347015, 43.651070, 6371.5)[1])
+cities_z.append(mapping_debris(-79.347015, 43.651070, 6371.5)[2])
 
 debris=dict(type='scatter3d',
                  x=[],
@@ -258,90 +279,48 @@ debris=dict(type='scatter3d',
                  marker=dict(
                  size=1,
                  color=500, #set color equal to a variable
-                 colorscale='Plasma')
+                 colorscale='Plasma'
+                 ),
+                 text = name_list,
+                 hoverinfo="text"
+  #           line=dict(color='red', width=2)
+                )
+
+cities=dict(type='scatter3d',
+                 x=cities_x,
+                 y=cities_y,
+                 z=cities_z,
+                 mode='markers',
+                 marker=dict(
+                 size=4,
+                 color="rgba(255, 165, 0, 1)", #set color equal to a variable
+                 colorscale='Plasma'
+                 ),
+                 text = ["Vancouver", "Kyiv", "Toronto"],
+                 hoverinfo="text"
   #           line=dict(color='red', width=2)
                 )
 
 
-
-plot_data=[debris, boundaries, topo_sphere]
+plot_data=[debris, boundaries, topo_sphere, cities]
 figure = go.Figure(data=plot_data, layout=layout)
-#figure.update_layout(scene_aspectmode='cube')
-
-"""
-ts = load.timescale()
-def current_location(line1, line2, ts):
-    satellite = EarthSatellite(line1, line2, 'ISS (ZARYA)', ts)
-    time_now = ts.now()
-
-    #Check if TLE valid
-    days_from_tle = time_now - satellite.epoch
-#    print('{:.3f} days away from epoch'.format(days))
-    if abs(days_from_tle) > 14:
-        print("TLE too old!")
-
-    geocentric = satellite.at(time_now)
-    subpoint = wgs84.subpoint(geocentric)
-
-    return subpoint.latitude.degrees, subpoint.longitude.degrees, subpoint.elevation.km
-
-
-def process(ts):
-    N_objects = 1
-  #  start = time.time()
-
-  #  for j in range(N_objects):
-        #Load TLE from cache
-    line1 = "1 49248U 21084B   21264.43765192  .00022599  00000-0  20385-3 0  9992"
-    line2 = "2 49248  51.6477 224.3772 0006629 293.3384  66.6927 15.68043965   408"
-
-        #Location now
-    lat, lon, r = current_location(line1, line2, ts)
-    X, Y, Z = mapping_debris(float(lon), float(lat), radius=6371+float(r))
-    return X, Y, Z
-
-"""
-
-cache = RedisCacheSync(settings.REDIS_URL)
-
-#for i in range(10):
-#  print(next(process(cache)))
-
-
+figure.update_traces(contours_x=dict(highlight=False), contours_y=dict(highlight=False), contours_z=dict(highlight=False), selector=dict(type='surface'))
 
 app = dash.Dash(__name__)
 
-app.layout = html.Div([dcc.Graph(id='scatter-plot', figure=figure), dcc.Interval(id="interval", interval = 1*3000)])
-
-#app.layout = html.Div([
-#    dcc.Graph(id="scatter-plot", animate=True),
-#    html.P("Petal Width:"),
-#    dcc.Interval(
-#            id='graph-update',
-#            interval=1*10000
-#        ),
-#])
+app.layout = html.Div([dcc.Graph(id='scatter-plot', figure=figure), dcc.Interval(id="interval", interval = 1*3000)
+                    #   dcc.Store(id='offset', data=0), dcc.Store(id='store', data=dict(x=x, y=y, z=z, resolution=resolution))
+])
 
 @app.callback(
     Output("scatter-plot", "extendData"),
     [Input("interval", "n_intervals")])
 def update_data(n_intervals):
 
-    location_list = next(process(cache))
+    location_list, name = next(process(cache))
+
     X, Y, Z = zip(*location_list)
 
-  #  X = 1 + random.uniform(0.5,1)
-  #  Y = 1 + random.uniform(0.5,1)
-  #  Z = 1 + random.uniform(0.5,1)
-  #  debris=dict(type='scatter3d',
-  #                 x=list(X),
-  #                 y=list(Y),
-  #                 z=list(Z),
-  #                 mode='lines+markers',
-  #                 line=dict(color='white', width=3)
-  #                )
+    return dict(x=[X], y=[Y], z=[Z]), [0], 1*len(X)
 
-
-    #return dict([dict(x=[xs],  y=[ys], z=[zs]), dict(x=[xs_bd], y=[ys_bd], z=[zs_bd]), dict(x=[X], y=[Y], z=[Z])])
-    return dict(x=[X], y=[Y], z=[Z]), [0], 30*len(X)
 app.run_server(debug=True, port= 8000)
