@@ -20,7 +20,7 @@ def sat_name(ts: Timescale, tle_0: str, tle_1: str, tle_2: str):
     return satellite.name
 
 
-def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple[x, y, z]:
+def current_location(ts: Timescale, tle_0: str, tle_1: str, tle_2: str) -> Tuple[Angle, Angle, Distance]:
     satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
     time_now = ts.now()
 
