@@ -1,0 +1,89 @@
+<head>
+    <style> body {
+        margin: 0;
+    } </style>
+
+    <script src="//unpkg.com/three"></script>
+    <script src="//unpkg.com/three/examples/js/controls/TrackballControls.js"></script>
+    <script src="//unpkg.com/three-globe"></script>
+    <!--<script src="../../dist/three-globe.js"></script>-->
+</head>
+
+<body>
+<div id="globeViz"></div>
+
+<script>
+    const DATA_SOURCE_URL = 'http://0.0.0.0:8080/api/v1/locations'
+    async function getRawData() {
+        const response = await fetch(DATA_SOURCE_URL);
+        return await response.json();
+    }
+    async function getData(globe) {
+        const rawData = await getRawData();
+        return rawData.map(x => ({
+            lat: x[0] * 20,
+            lng: x[1] * 20,
+            alt: x[2] / 6371,
+            radius: 1,
+            color: 'white'
+        }));
+    }
+    async function run() {
+        let gData = await getData();
+
+        const Globe = new ThreeGlobe()
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .customLayerData(gData)
+            .customThreeObject(d => new THREE.Mesh(
+                new THREE.SphereBufferGeometry(d.radius),
+                new THREE.MeshLambertMaterial({color: d.color})
+            ))
+            .customThreeObjectUpdate((obj, d) => {
+                Object.assign(obj.position, Globe.getCoords(d.lat, d.lng, d.alt));
+            });
+
+        await (async function moveSpheres() {
+            await new Promise(r => setTimeout(r, 100));
+            gData = await getData();
+            Globe.customLayerData(gData);
+            requestAnimationFrame(moveSpheres);
+        })();
+
+        // Setup renderer
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('globeViz').appendChild(renderer.domElement);
+
+        // Setup scene
+        const scene = new THREE.Scene();
+        scene.add(Globe);
+        scene.add(new THREE.AmbientLight(0xbbbbbb));
+        scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
+
+        // Setup camera
+        const camera = new THREE.PerspectiveCamera();
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        camera.position.z = 500;
+
+        // Add camera controls
+        const tbControls = new THREE.TrackballControls(camera, renderer.domElement);
+        tbControls.minDistance = 101;
+        tbControls.rotateSpeed = 5;
+        tbControls.zoomSpeed = 0.8;
+
+        // Kick-off renderer
+        (function animate() { // IIFE
+            // Frame cycle
+            tbControls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        })();
+    }
+    (async function() {
+        await run();
+    })()
+
+</script>
+</body>

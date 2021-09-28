@@ -4,8 +4,8 @@ from argparse import Namespace, ArgumentParser
 
 import uvloop
 
-from name_is_coming import settings
-from name_is_coming.poller.service import Service
+from server import settings
+from server.poller.service import Service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

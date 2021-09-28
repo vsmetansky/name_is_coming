@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple
 import ujson
 from aiohttp import ClientSession
 
-from name_is_coming.tle import from_triplet
+from server.tle import from_triplet
 
 logger = logging.getLogger(__name__)
 

@@ -2,8 +2,8 @@ import asyncio
 import logging
 from typing import Dict
 
-from name_is_coming.storage.cache import RedisCache
-from name_is_coming.poller.client import SpaceTrackClient
+from server.storage.cache import RedisCache
+from server.poller.client import SpaceTrackClient
 
 logger = logging.getLogger(__name__)
 

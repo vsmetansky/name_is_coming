@@ -7,7 +7,7 @@
 ## Run data collection
 
 1. set your space-track.com `API_LOGIN` and `API_PASS` either in settings or through env
-2. `python -m name_is_coming.poller`
+2. `python -m server.poller`
     * by default DC runs only once using your existing cache
     * if cache is empty, we try to fetch data per last `API_POLL_LOOKBACK_WHEN_EMPTY` days first (you can also
       use `--clear-cache` flag to force it)
@@ -16,8 +16,9 @@
 
 ## Run data processing
 
-1. `python -m name_is_coming.processor`
+1. `python -m server.processor`
 
 ## Run data visualization
 
-2. `python -m name_is_coming.visualizer`
+1. `python -m client`
+2. `python -m server.visualizer`
