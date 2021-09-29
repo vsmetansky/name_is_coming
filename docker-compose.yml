@@ -1,0 +1,35 @@
+version: '3.2'
+
+services:
+  poller:
+    build:
+      context: .
+    container_name: nic_poller
+    depends_on:
+      - redis
+      - postgres
+    command: poller --clear-cache --run-forever
+    hostname: localhost
+    network_mode: host
+
+  redis:
+    image: redis
+    container_name: nic_redis
+    volumes:
+      - ./redis_data:/data
+    ports:
+      - 6379:6379
+    hostname: localhost
+    network_mode: host
+
+  postgres:
+    image: postgres
+    container_name: nic_postgres
+    environment:
+      POSTGRES_USER: nic_user
+      POSTGRES_PASSWORD: nic_pass
+      POSTGRES_DATABASE: nic_db
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+    hostname: localhost
+    network_mode: host

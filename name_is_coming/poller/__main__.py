@@ -20,7 +20,7 @@ def get_args() -> Namespace:
     return parser.parse_args()
 
 
-async def entrypoint():
+async def run():
     args = get_args()
 
     service = Service(
@@ -41,5 +41,9 @@ async def entrypoint():
         await service.close()
 
 
-uvloop.install()
-asyncio.run(entrypoint())
+def entrypoint():
+    uvloop.install()
+    asyncio.run(run())
+
+
+entrypoint()
