@@ -3,7 +3,7 @@ from typing import List, Tuple, Generator
 from skyfield.api import EarthSatellite
 from skyfield.api import load, wgs84
 
-from skyfield.timelib import Timescale
+from skyfield.timelib import Timescale, Time
 from skyfield.units import Angle, Distance
 
 from name_is_coming import settings
@@ -16,9 +16,7 @@ def degree2radians(degree):
     return degree * np.pi / 180
 
 
-def current_location(ts: Timescale, satellite: EarthSatellite) -> Tuple[Angle, Angle, Distance]:
-    time_now = ts.now()
-
+def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, Angle, Distance]:
     # Check if TLE valid
     days_from_tle = time_now - satellite.epoch
     if abs(days_from_tle) > 14:
@@ -38,18 +36,19 @@ def current_location(ts: Timescale, satellite: EarthSatellite) -> Tuple[Angle, A
     return x, y, z
 
 
-def process_tle(tle: str, ts: Timescale, locations: List, names: List):
+def process_tle(tle: str, ts: Timescale, time_now: Time, locations: List, names: List):
     tle_0, tle_1, tle_2 = to_triplet(tle)
     satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
-    locations.append(current_location(ts, satellite))
+    locations.append(current_location(time_now, satellite))
     names.append(satellite.name)
 
 
 def process_once(ts: Timescale, cache: RedisCacheSync) -> Tuple[List, List]:
     tles = cache.retrieve()
+    time_now = ts.now()
     locations, names = [], []
     for tle in tles.values():
-        process_tle(tle, ts, locations, names)
+        process_tle(tle, ts, time_now, locations, names)
 
     return locations, names
 
