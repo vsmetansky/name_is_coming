@@ -1,3 +1,8 @@
+## Description
+There are 2 main packages in the project: `poller` and `visualizer`.
+  * `poller` collects latest data on satellites\debris positions from space-track.com API and saves it to Redis
+  * `visualizer` grabs data from Redis inside a Dash callback, calculates actual positions of satellites\debris via processor module and renders results
+
 ## Setup
 
 1. install and run Redis (or just do `docker-compose up redis`)
@@ -10,7 +15,7 @@
 
 1. set your space-track.com `API_LOGIN` and `API_PASS` either in settings or through env
 2. `python -m name_is_coming.poller`
-    * by default DC runs only once using your existing cache
+    * by default `poller` runs only once using your existing cache
     * if cache is empty, we try to fetch data per last `API_POLL_LOOKBACK_WHEN_EMPTY` days first (you can also
       use `--clear-cache` flag to force it)
     * otherwise data is fetched per last `API_POLL_LOOKBACK` days
