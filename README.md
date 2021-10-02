@@ -1,8 +1,10 @@
 ## Setup
 
-1. install Redis
+1. install and run Redis (or just do `docker-compose up redis`)
 2. initiate and activate virtualenv
 3. `pip install -r requirements.txt`
+4. download `ETOPO1_Ice_g_gdal.grd.gz` from https://www.ngdc.noaa.gov/mgg/global/relief/ETOPO1/data/ice_surface/grid_registered/netcdf/
+5. unzip ETOPO1_Ice_g_gdal.grd.gz to data dir of repository root
 
 ## Run data collection
 
@@ -14,10 +16,6 @@
     * otherwise data is fetched per last `API_POLL_LOOKBACK` days
     * to run DC periodically add `--run-forever` flag and cache will be updated every `API_POLL_INTERVAL` seconds
 
-## Run data processing
-
-1. `python -m name_is_coming.processor`
-
 ## Run data visualization
 
-2. `python -m name_is_coming.visualizer`
+1. `python -m name_is_coming.visualizer` (There may be problems with `basemap`, possible solutions: https://stackoverflow.com/questions/40374441/python-basemap-module-impossible-to-import)

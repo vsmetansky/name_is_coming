@@ -34,7 +34,7 @@ class Service:
             **kwargs
         )
         self._redis = redis.from_url(redis_url, decode_responses=True)
-        self._es = elasticsearch.Elasticsearch()
+        # self._es = elasticsearch.Elasticsearch()
 
         self._api_poll_interval = api_poll_interval
         self._api_poll_lookback = api_poll_lookback
