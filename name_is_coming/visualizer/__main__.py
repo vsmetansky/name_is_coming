@@ -6,6 +6,7 @@ from dash import dcc
 import plotly.graph_objs as go
 from netCDF4 import Dataset
 import numpy as np
+import redis
 from mpl_toolkits.basemap import Basemap
 from screeninfo import get_monitors
 
@@ -15,7 +16,7 @@ for monitor in get_monitors():
 
 from name_is_coming import settings
 from name_is_coming.processor import process
-from name_is_coming.storage.cache import RedisCacheSync
+from name_is_coming.storage import cache
 
 
 def Etopo(lon_area, lat_area, resolution):
@@ -239,8 +240,8 @@ layout = go.Layout(
     paper_bgcolor=bgcolor,
     plot_bgcolor=bgcolor)
 
-cache = RedisCacheSync(settings.REDIS_URL)
-location_list, name_list = next(process(cache))
+r = redis.from_url(settings.REDIS_URL, decode_responses=True)
+location_list, name_list = next(process(r))
 
 cities_x = []
 cities_y = []
@@ -306,7 +307,7 @@ app.layout = html.Div([dcc.Graph(id='scatter-plot', figure=figure), dcc.Interval
     Output("scatter-plot", "extendData"),
     [Input("interval", "n_intervals")])
 def update_data(n_intervals):
-    location_list, name = next(process(cache))
+    location_list, name = next(process(r))
 
     X, Y, Z = zip(*location_list)
 
