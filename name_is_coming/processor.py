@@ -1,14 +1,14 @@
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, Dict
 
+import redis
 from skyfield.api import EarthSatellite
 from skyfield.api import load, wgs84
-
 from skyfield.timelib import Timescale, Time
 from skyfield.units import Angle, Distance
 
 from name_is_coming import settings
-from name_is_coming.storage.cache import RedisCacheSync
-from name_is_coming.tle import to_triplet
+from name_is_coming.storage import cache
+from name_is_coming.storage.satellite import satellite_to_tle_triplet
 import numpy as np
 
 
@@ -17,11 +17,6 @@ def degree2radians(degree):
 
 
 def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, Angle, Distance]:
-    # Check if TLE valid
-    days_from_tle = time_now - satellite.epoch
-    if abs(days_from_tle) > 14:
-        print('TLE too old!')
-
     geocentric = satellite.at(time_now)
     subpoint = wgs84.subpoint(geocentric)
 
@@ -32,38 +27,43 @@ def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, 
     y = h * np.sin(lon) * np.cos(lat)
     z = h * np.sin(lat)
 
-    # 6371*degree2radians(subpoint.latitude.degrees), degree2radians(subpoint.longitude.degrees), subpoint.elevation.km
     return x, y, z
 
 
-def process_tle(tle: str, ts: Timescale, time_now: Time, locations: List, names: List):
-    tle_0, tle_1, tle_2 = to_triplet(tle)
+def process_satellite(
+    satellite: Dict[str, str],
+    ts: Timescale,
+    time_now: Time,
+    locations: List,
+    names: List
+):
+    tle_0, tle_1, tle_2 = satellite_to_tle_triplet(satellite)
     satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
+
     locations.append(current_location(time_now, satellite))
     names.append(satellite.name)
 
 
-def process_once(ts: Timescale, cache: RedisCacheSync) -> Tuple[List, List]:
-    tles = cache.retrieve()
+def process_once(ts: Timescale, r: redis.Redis) -> Tuple[List, List]:
+    satellites = cache.get_satellites(r)
     time_now = ts.now()
     locations, names = [], []
-    for tle in tles.values():
-        process_tle(tle, ts, time_now, locations, names)
+
+    for satellite in satellites:
+        process_satellite(satellite, ts, time_now, locations, names)
 
     return locations, names
 
 
-def process(cache: RedisCacheSync) -> Generator[List[Tuple], None, None]:
+def process(r: redis.Redis) -> Generator[List[Tuple], None, None]:
     ts = load.timescale()
     while True:
-        yield process_once(ts, cache)
+        yield process_once(ts, r)
 
 
 def entrypoint():
-    cache = RedisCacheSync(
-        settings.REDIS_URL
-    )
-    for result in process(cache):
+    r = redis.from_url(settings.REDIS_URL, decode_responses=True)
+    for result in process(r):
         print(result[0])
 
 

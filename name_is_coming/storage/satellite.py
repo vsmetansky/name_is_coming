@@ -3,17 +3,20 @@ Schema definition https://www.space-track.org/basicspacedata/modeldef/class/gp/f
 """
 
 __all__ = (
+    'satellite_to_tle_triplet',
     'satellites_to_cached',
     'satellites_from_cached',
     'group_latest_by_name'
 )
 
 from collections import defaultdict, deque
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import ujson
 
-TLE_LINE_SEP = '\n'
+
+def satellite_to_tle_triplet(satellite: Dict[str, str]) -> Tuple[str, str, str]:
+    return satellite['TLE_LINE0'], satellite['TLE_LINE1'], satellite['TLE_LINE2']
 
 
 def satellites_to_cached(satellites: List[Dict[str, str]]) -> List[Dict[str, str]]:
