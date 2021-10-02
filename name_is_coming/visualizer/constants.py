@@ -1,0 +1,4 @@
+EARTH_RADIUS = 6371
+EARTH_ANGULAR_VELOCITY = 7.3 * 1e-3  # the actual speed is lower
+
+UPDATE_PERIOD = 3000

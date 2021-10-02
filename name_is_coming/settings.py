@@ -2,8 +2,8 @@ from os import getenv
 
 REDIS_URL = getenv('REDIS_URL', 'redis://localhost:6379')
 
-API_LOGIN = getenv('API_LOGIN', '')
-API_PASS = getenv('API_PASS', '')
+API_LOGIN = getenv('API_LOGIN', 'vladsmetansky@gmail.com')
+API_PASS = getenv('API_PASS', 'Vladgeekspacetrack1')
 API_AUTH_CREDS = {'identity': API_LOGIN, 'password': API_PASS}
 API_AUTH_URL = 'https://www.space-track.org/ajaxauth/login'
 
