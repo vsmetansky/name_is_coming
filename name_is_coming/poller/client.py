@@ -1,11 +1,9 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 import ujson
 from aiohttp import ClientSession
-
-from name_is_coming.tle import from_triplet
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +17,7 @@ class Client(ABC):
         self._session = ClientSession()
 
     @abstractmethod
-    async def fetch(self) -> Tuple[Tuple[Dict[str, str]]]:
+    async def fetch(self) -> List[Dict[str, str]]:
         pass
 
     async def close(self):
@@ -53,22 +51,8 @@ class SpaceTrackClient(Client):
     async def auth(self):
         await self._session.post(self._auth_url, data=self._credentials)
 
-    async def fetch(self) -> Tuple[Dict[str, str]]:
-        try:
-            return await self._fetch()
-        except:
-            logger.info('authenticating...')
-            await self.auth()
-            logger.info('authenticated!')
-            return await self._fetch()
-
-    async def _fetch(self) -> Tuple[Dict[str, str]]:
+    async def fetch(self) -> List[Dict[str, str]]:
         response = await self._session.get(self._poll_url)
         data = await response.json(loads=ujson.loads)
         logger.info(f'fetched {len(data)} datapoints')
-        return self._normalize(data)
-
-    @staticmethod
-    def _normalize(data: List[dict]) -> Tuple[Dict[str, str]]:
-        # schema definition https://www.space-track.org/basicspacedata/modeldef/class/gp/format/html
-        return tuple(from_triplet(x['TLE_LINE0'], x['TLE_LINE1'], x['TLE_LINE2']) for x in data)
+        return data

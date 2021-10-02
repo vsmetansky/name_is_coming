@@ -13,3 +13,10 @@ API_POLL_URL_TMPL = \
 API_POLL_INTERVAL = int(getenv('API_POLL_INTERVAL', 20))  # seconds
 API_POLL_LOOKBACK = int(getenv('API_POLL_LOOKBACK', 1))  # days
 API_POLL_LOOKBACK_WHEN_EMPTY = int(getenv('API_POLL_LOOKBACK_WHEN_EMPTY', 30))  # days
+
+API_POLL_HIST_URL_TMPL = \
+    'https://www.space-track.org/basicspacedata/query/class/gp' \
+    '/decay_date/null-val/epoch/>now-{}/orderby/EPOCH asc/format/json'
+API_POLL_HIST_BATCH_SIZE = int(getenv('API_POLL_HIST_BATCH_SIZE', 50))
+
+INDEX_NAME = getenv('INDEX_NAME', 'satellites')

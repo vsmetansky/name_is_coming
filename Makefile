@@ -1,8 +1,8 @@
 run-redis:
-	docker-compose up redis -d
+	docker-compose up -d elasticsearch
 
-run-postgres:
-	docker-compose up postgres -d
+run-elastic:
+	docker-compose up -d elasticsearch
 
 run-poller:
 	docker-compose up poller

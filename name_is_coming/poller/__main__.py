@@ -16,6 +16,7 @@ def get_args() -> Namespace:
 
     parser.add_argument('--run-forever', dest='run_forever', action='store_true')
     parser.add_argument('--clear-cache', dest='clear_cache', action='store_true')
+    parser.add_argument('--lookback-historical', dest='lookback_historical', type=int)
 
     return parser.parse_args()
 
@@ -32,7 +33,8 @@ async def run():
         settings.API_POLL_LOOKBACK,
         settings.API_POLL_LOOKBACK_WHEN_EMPTY,
         args.run_forever,
-        args.clear_cache
+        args.clear_cache,
+        args.lookback_historical
     )
 
     try:

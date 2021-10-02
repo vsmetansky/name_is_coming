@@ -1,75 +1,33 @@
-from typing import Dict, Tuple
-from abc import ABC, abstractmethod
+from typing import Dict, List
 
-import aioredis
-import redis
+from redis import Redis
 
-from name_is_coming.tle import group_latest_by_name
+from name_is_coming.storage.satellite import group_latest_by_name, satellites_from_cached, satellites_to_cached
 
 
 class KeyGenerator:
-    cache_key: str = 'tle_cache'
+    satellites_key: str = 'satellites_cache'
 
 
-class Cache(ABC):
-    @abstractmethod
-    def update(self, entries: Tuple[Dict[str, str]]):
-        pass
+def update_satellites(redis: Redis, satellites: List[Dict[str, str]]):
+    satellites = satellites_to_cached(satellites)
 
-    @abstractmethod
-    def clear(self):
-        pass
+    satellites_to_update = redis.hgetall(KeyGenerator.satellites_key)
 
-    @abstractmethod
-    def retrieve(self) -> Dict[str, str]:
-        pass
+    satellites = group_latest_by_name(satellites)
+    satellites_to_update.update(satellites)
 
-    @abstractmethod
-    def is_empty(self) -> bool:
-        pass
+    redis.hmset(KeyGenerator.satellites_key, satellites_to_update)
 
 
-class RedisCache(Cache):
-    def __init__(self, redis_url: str):
-        super().__init__()
-        self._redis = aioredis.from_url(redis_url, decode_responses=True)
-
-    async def update(self, entries: Tuple[Dict[str, str]]):
-        entries_to_update = await self._redis.hgetall(KeyGenerator.cache_key)
-
-        entries = group_latest_by_name(entries)
-        entries_to_update.update(entries)
-
-        await self._redis.hmset(KeyGenerator.cache_key, entries_to_update)
-
-    async def clear(self):
-        await self._redis.delete(KeyGenerator.cache_key)
-
-    async def retrieve(self) -> Dict[str, str]:
-        return await self._redis.hgetall(KeyGenerator.cache_key)
-
-    async def is_empty(self) -> bool:
-        return bool(await self.retrieve())
+def clear_satellites(redis: Redis):
+    redis.delete(KeyGenerator.satellites_key)
 
 
-class RedisCacheSync(Cache):
-    def __init__(self, redis_url: str):
-        super().__init__()
-        self._redis = redis.from_url(redis_url, decode_responses=True)
+def get_satellites(redis: Redis) -> List[Dict[str, str]]:
+    satellites_cached = redis.hgetall(KeyGenerator.satellites_key)
+    return satellites_from_cached(satellites_cached)
 
-    def update(self, entries: Tuple[Dict[str, str]]):
-        entries_to_update = self._redis.hgetall(KeyGenerator.cache_key)
 
-        entries = group_latest_by_name(entries)
-        entries_to_update.update(entries)
-
-        self._redis.hmset(KeyGenerator.cache_key, entries_to_update)
-
-    def clear(self):
-        self._redis.delete(KeyGenerator.cache_key)
-
-    def retrieve(self) -> Dict[str, str]:
-        return self._redis.hgetall(KeyGenerator.cache_key)
-
-    def is_empty(self) -> bool:
-        return bool(self.retrieve())
+def is_empty(redis: Redis) -> bool:
+    return bool(get_satellites(redis))

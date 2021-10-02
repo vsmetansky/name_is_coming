@@ -7,7 +7,7 @@ services:
     container_name: nic_poller
     depends_on:
       - redis
-      - postgres
+      - elasticsearch
     command: poller --clear-cache --run-forever
     hostname: localhost
     network_mode: host
@@ -22,14 +22,16 @@ services:
     hostname: localhost
     network_mode: host
 
-  postgres:
-    image: postgres
-    container_name: nic_postgres
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    container_name: nic_elasticsearch
     environment:
-      POSTGRES_USER: nic_user
-      POSTGRES_PASSWORD: nic_pass
-      POSTGRES_DATABASE: nic_db
+      - xpack.security.enabled=false
+      - discovery.type=single-node
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data/
+      - ./elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
     hostname: localhost
     network_mode: host
