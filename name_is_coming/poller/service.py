@@ -60,7 +60,7 @@ class Service:
     async def _run_once_safe(self):
         try:
             await self._run_once()
-        except TypeError:
+        except (TypeError, AttributeError):
             logger.warning('failed, trying to authenticate...')
             await self._client.auth()
             logger.info('authenticated!')

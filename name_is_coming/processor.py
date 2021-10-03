@@ -7,13 +7,10 @@ from skyfield.timelib import Timescale, Time
 from skyfield.units import Angle, Distance
 
 from name_is_coming import settings
+from name_is_coming.utils import degree2radians
 from name_is_coming.storage import cache
 from name_is_coming.storage.satellite import satellite_to_tle_triplet
 import numpy as np
-
-
-def degree2radians(degree):
-    return degree * np.pi / 180
 
 
 def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, Angle, Distance]:
@@ -36,26 +33,28 @@ def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, 
 def process_satellite(
     satellite: Dict[str, str],
     ts: Timescale,
-    time_now: Time,
-    locations: List,
-    names: List
+    time_now: Time
 ):
     tle_0, tle_1, tle_2 = satellite_to_tle_triplet(satellite)
-    satellite = EarthSatellite(tle_1, tle_2, tle_0, ts)
+    satellite_ = EarthSatellite(tle_1, tle_2, tle_0, ts)
 
-    locations.append(current_location(time_now, satellite))
-    names.append(satellite.name)
+    X, Y, Z = current_location(time_now, satellite_)
+
+    satellite.update({
+        'X': X,
+        'Y': Y,
+        'Z': Z,
+    })
 
 
 def process_once(ts: Timescale, r: redis.Redis) -> Tuple[List, List]:
     satellites = cache.get_satellites(r)
     time_now = ts.now()
-    locations, names = [], []
 
     for satellite in satellites:
-        process_satellite(satellite, ts, time_now, locations, names)
+        process_satellite(satellite, ts, time_now)
 
-    return locations, names
+    return satellites
 
 
 def process(r: redis.Redis) -> Generator[List[Tuple], None, None]:

@@ -35,3 +35,13 @@ def group_latest_by_name(satellites: List[Dict[str, str]]) -> Dict[str, str]:
         grouped[name].append(datum)
 
     return {name: data.pop() for name, data in grouped.items()}
+
+
+def get_labels(satellite: Dict[str, str]):
+    return [
+        [satellite.get('OBJECT_NAME')],
+        [satellite.get('COUNTRY_CODE')],
+        [satellite.get('LAUNCH_DATE')],
+        [satellite.get('OBJECT_TYPE')],
+        [satellite.get('Purpose')],
+    ]
