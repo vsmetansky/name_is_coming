@@ -11,7 +11,7 @@ from skyfield.units import Angle, Distance
 from name_is_coming import settings
 from name_is_coming.utils import degree2radians
 from name_is_coming.storage import cache
-from name_is_coming.storage.satellite import satellite_to_tle_triplet
+from name_is_coming.storage.satellite import filter_satellites, satellite_to_tle_triplet
 import numpy as np
 
 from name_is_coming.visualizer.constants import PREDICTION_PERIOD, PREDICTION_STEP
@@ -51,12 +51,12 @@ def process_satellite(
     })
 
 
-def process_once(ts: Timescale, r: redis.Redis, name_to_predict) -> Tuple[List, List]:
+def process_once(ts: Timescale, r: redis.Redis, objects_type, name_to_predict) -> Tuple[List, List]:
     satellites = cache.get_satellites(r)
     time_now = ts.now()
 
     if name_to_predict:
-        satellite = next((s for s in satellites if s['OBJECT_NAME'] in name_to_predict), None)
+        satellite = next((s for s in satellites if s['OBJECT_NAME'] == name_to_predict), None)
         
         year, month, day, hour, minute, second = time_now.utc
 
@@ -71,15 +71,16 @@ def process_once(ts: Timescale, r: redis.Redis, name_to_predict) -> Tuple[List, 
             process_satellite(satellite, ts, date)
         return satellites
 
+    satellites = filter_satellites(satellites, objects_type)
     for satellite in satellites:
         process_satellite(satellite, ts, time_now)
     return satellites
 
 
-def process(r: redis.Redis, name_to_predict=None) -> Generator[List[Dict], None, None]:
+def process(r: redis.Redis, objects_type, name_to_predict=None) -> Generator[List[Dict], None, None]:
     ts = load.timescale()
     while True:
-        yield process_once(ts, r, name_to_predict)
+        yield process_once(ts, r, objects_type, name_to_predict)
 
 
 def entrypoint():

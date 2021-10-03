@@ -2,17 +2,36 @@
 Schema definition https://www.space-track.org/basicspacedata/modeldef/class/gp/format/html
 """
 
+from enum import IntEnum, auto
+from functools import lru_cache
+import ujson
+from typing import Dict, List, Tuple
+from collections import defaultdict, deque
+
 __all__ = (
     'satellite_to_tle_triplet',
     'satellites_to_cached',
     'satellites_from_cached',
-    'group_latest_by_name'
+    'group_latest_by_name',
+    'SatelliteType',
 )
 
-from collections import defaultdict, deque
-from typing import Dict, List, Tuple
+SATELLITE_TYPE = {'PAYLOAD',}
+DEBRIS_TYPE = {'DEBRIS', 'ROCKET BODY', 'TBA'}
+ALL_TYPE = SATELLITE_TYPE | DEBRIS_TYPE
 
-import ujson
+
+class SatelliteType(IntEnum):
+    ALL = auto()
+    SATELLITE = auto()
+    DEBRIS = auto()
+
+
+SATELLITE_TYPES_MAP = {
+    SatelliteType.ALL: ALL_TYPE,
+    SatelliteType.SATELLITE: SATELLITE_TYPE,
+    SatelliteType.DEBRIS: DEBRIS_TYPE
+}
 
 
 def satellite_to_tle_triplet(satellite: Dict[str, str]) -> Tuple[str, str, str]:
@@ -36,9 +55,9 @@ def group_latest_by_name(satellites: List[Dict[str, str]]) -> Dict[str, str]:
 
     return {name: data.pop() for name, data in grouped.items()}
 
-
-def filter_satellites(satellites: List[Dict[str, str]], object_type='PAYLOAD', alive_only=False):
-    return [s for s in satellites if s['OBJECT_TYPE'] == object_type and not s['DECAY_DATE'] if alive_only]
+def filter_satellites(satellites: List[Dict[str, str]], objects_type=SatelliteType.ALL, alive_only=False):
+    objects_types_verbose = SATELLITE_TYPES_MAP.get(objects_type)
+    return [s for s in satellites if s['OBJECT_TYPE'] in objects_types_verbose]
 
 
 def get_labels(satellite: Dict[str, str]):

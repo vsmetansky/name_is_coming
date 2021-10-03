@@ -10,36 +10,43 @@ import numpy as np
 import redis
 from screeninfo import get_monitors
 
-from name_is_coming.storage.satellite import filter_satellites, get_labels
+from name_is_coming.storage.satellite import SatelliteType, get_labels
 from name_is_coming.visualizer.constants import (
     EARTH_ANGULAR_VELOCITY, EARTH_RADIUS, UPDATE_PERIOD, TOPO_LON_AREA, TOPO_LAT_AREA, TOPO_RESOLUTION)
 from name_is_coming.utils import map_to_sphere
 from name_is_coming.visualizer.constructors import (
     Etopo, construct_earth, construct_figure, construct_layout, construct_satellites, construct_predictions)
 
-r = redis.from_url(settings.REDIS_URL, decode_responses=True)
-app = dash.Dash(__name__)
-
 
 LON_TOPO, LAT_TOPO, TOPO = Etopo(TOPO_LON_AREA, TOPO_LAT_AREA, TOPO_RESOLUTION)
 X_E, Y_E, Z_E = map_to_sphere(LON_TOPO, LAT_TOPO, EARTH_RADIUS)
 MONITOR, = get_monitors()
+
+r = redis.from_url(settings.REDIS_URL, decode_responses=True)
+app = dash.Dash(__name__)
 
 layout = construct_layout(MONITOR.width, MONITOR.height)
 earth = construct_earth(TOPO)
 satellites = construct_satellites()
 figure = construct_figure(layout, satellites, earth)
 
-satellite_names = map(lambda x: x['OBJECT_NAME'], filter_satellites(next(process(r)), alive_only=True))
-
 app.layout = html.Div((
     dcc.Graph(id='system', figure=figure),
     dcc.Interval(id='interval', interval=UPDATE_PERIOD, n_intervals=0),
     html.Div((
         dcc.Dropdown(
+            id='switch-type',
+            options=[
+                {'label': 'All', 'value': SatelliteType.ALL},
+                {'label': 'Debris', 'value': SatelliteType.DEBRIS},
+                {'label': 'Satellites', 'value': SatelliteType.SATELLITE}
+            ],
+            placeholder='Choose objects type',
+            value=SatelliteType.ALL
+        ),
+        dcc.Dropdown(
             id='show-orbit',
-            options=[{'label': n, 'value': n} for n in satellite_names],
-            placeholder='Satellite orbit prediction',
+            placeholder='Orbit prediction',
             multi=False
         ),
     ), style={
@@ -52,11 +59,21 @@ app.layout = html.Div((
 
 
 @app.callback(
+    Output('show-orbit', 'options'),
+    Input('switch-type', 'value')
+)
+def update_show_orbit_options(objects_type):
+    satellites = next(process(r, objects_type))
+    return [{'label': s['OBJECT_NAME'], 'value': s['OBJECT_NAME']} for s in satellites]
+
+
+@app.callback(
     Output('system', 'figure'),
     [Input('interval', 'n_intervals'),
+     Input('switch-type', 'value'),
      Input('show-orbit', 'value')])
-def update_state(n_intervals, name_to_predict):
-    X_S, Y_S, Z_S, labels = _move_satellites(name_to_predict)
+def update_state(n_intervals, objects_type, name_to_predict):
+    X_S, Y_S, Z_S, labels = _move_satellites(objects_type, name_to_predict)
     X_E, Y_E, Z_E = _rotate_earth(n_intervals)
 
     earth = construct_earth(TOPO, X_E, Y_E, Z_E)
@@ -71,8 +88,8 @@ def update_state(n_intervals, name_to_predict):
     return figure
 
 
-def _move_satellites(name_to_predict):
-    satellites = next(process(r, name_to_predict))
+def _move_satellites(objects_type, name_to_predict):
+    satellites = next(process(r, objects_type, name_to_predict))
 
     X, Y, Z, labels = zip(
         *map(
