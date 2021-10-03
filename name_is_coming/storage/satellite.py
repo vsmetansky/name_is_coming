@@ -44,9 +44,6 @@ def filter_satellites(satellites: List[Dict[str, str]], object_type='PAYLOAD', a
 def get_labels(satellite: Dict[str, str]):
     return [
         [satellite.get('OBJECT_NAME')],
-        [satellite.get('lat')],
-        [satellite.get('lon')],
-        [satellite.get('h')],
         [satellite.get('COUNTRY_CODE')],
         [satellite.get('LAUNCH_DATE')],
         [satellite.get('OBJECT_TYPE')],

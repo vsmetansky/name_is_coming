@@ -65,7 +65,7 @@ def update_state(n_intervals, name_to_predict):
         figure = construct_figure(layout, satellites, earth)
     else:
         satellites = construct_satellites(X_S[:1], Y_S[:1], Z_S[:1], labels)
-        predictions = construct_predictions(X_S[1:], Y_S[1:], Z_S[1:], labels)
+        predictions = construct_predictions(X_S[1:], Y_S[1:], Z_S[1:])
         figure = construct_figure(layout, satellites, predictions, earth)
 
     return figure
