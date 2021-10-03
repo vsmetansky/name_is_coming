@@ -151,6 +151,8 @@ noaxis = dict(showbackground=False,
 
 titlecolor = 'white'
 bgcolor = 'black'
+camera = dict(
+    center=dict(x=0, y=0, z=0))
 
 layout = go.Layout(
     autosize=True,
@@ -163,7 +165,9 @@ layout = go.Layout(
         xaxis=dict(noaxis, showspikes=False),
         yaxis=dict(noaxis, showspikes=False),
         zaxis=dict(noaxis, showspikes=False),
-        aspectmode='data'),
+        #  showspikes = False,
+        aspectmode='data',
+        dragmode = "orbit"),
     paper_bgcolor=bgcolor,
     plot_bgcolor=bgcolor)
 
@@ -176,9 +180,9 @@ debris = dict(type='scatter3d',
               z=[],
               mode='markers',
               marker=dict(
-                  size=1,
-                  color=500,  # set color equal to a variable
-                  colorscale='Plasma'
+                  size=2,
+                  color="#2CA02C",  # set color equal to a variable
+                #  colorscale='Plasma'
               ),
               text=name_list,
               hoverinfo="text"
@@ -193,6 +197,7 @@ figure.update_traces(
     contours_x=dict(highlight=False), contours_y=dict(highlight=False),
     contours_z=dict(highlight=False), selector=dict(type='surface')
 )
+
 
 app = dash.Dash(__name__)
 
@@ -217,7 +222,7 @@ def update_state(n_intervals):
         mode='markers',
         marker=dict(
             size=1,
-            color=500,
+            color="#2CA02C",
             colorscale='Plasma'
         ),
         text=name_list,

@@ -27,6 +27,9 @@ def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, 
     y = h * np.sin(lon) * np.cos(lat)
     z = h * np.sin(lat)
 
+    if abs(x) > 55000 or abs(y) > 55000 or abs(z) > 55000:
+        x = y = z = 0
+
     return x, y, z
 
 
