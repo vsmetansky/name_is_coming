@@ -224,19 +224,23 @@ noaxis = dict(showbackground=False,
 
 titlecolor = 'white'
 bgcolor = 'black'
+camera = dict(
+    center=dict(x=0, y=0, z=0))
 
 layout = go.Layout(
     autosize=False, width=(monitor.width - 10), height=monitor.height,
     title='Debris map',
     titlefont=dict(family='Courier New', color=titlecolor),
     showlegend=False,
+    scene_camera=camera,
 
     scene=dict(
         xaxis=dict(noaxis, showspikes=False),
         yaxis=dict(noaxis, showspikes=False),
         zaxis=dict(noaxis, showspikes=False),
         #  showspikes = False,
-        aspectmode='data'),
+        aspectmode='data',
+        dragmode = "orbit"),
     paper_bgcolor=bgcolor,
     plot_bgcolor=bgcolor)
 
@@ -267,14 +271,15 @@ debris = dict(type='scatter3d',
               z=[],
               mode='markers',
               marker=dict(
-                  size=1,
-                  color=500,  # set color equal to a variable
-                  colorscale='Plasma'
+                  size=2,
+                  color="#2CA02C",  # set color equal to a variable
+                #  colorscale='Plasma'
               ),
               text=name_list,
               hoverinfo="text"
               #           line=dict(color='red', width=2)
               )
+
 
 cities = dict(type='scatter3d',
               x=cities_x,
@@ -296,6 +301,7 @@ figure = go.Figure(data=plot_data, layout=layout)
 figure.update_traces(contours_x=dict(highlight=False), contours_y=dict(highlight=False),
                      contours_z=dict(highlight=False), selector=dict(type='surface'))
 
+
 app = dash.Dash(__name__)
 
 app.layout = html.Div([dcc.Graph(id='scatter-plot', figure=figure), dcc.Interval(id="interval", interval=1 * 3000)
@@ -310,6 +316,7 @@ def update_data(n_intervals):
     location_list, name = next(process(r))
 
     X, Y, Z = zip(*location_list)
+
 
     return dict(x=[X], y=[Y], z=[Z]), [0], 1 * len(X)
 
