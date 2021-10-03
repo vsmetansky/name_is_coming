@@ -4,7 +4,7 @@ from netCDF4 import Dataset
 
 from name_is_coming.visualizer.constants import (
     BACKGROUND_COLOR, EARTH_COLOR, EARTH_COLOR_MAX, EARTH_COLOR_MIN, EARTH_LIGHT_EFFECTS,
-    EARTH_LIGHT_POSITION, SATELLITES_COLOR, SATELLITES_SIZE, TITLE_COLOR)
+    EARTH_LIGHT_POSITION, PREDICTION_COLOR, PREDICTION_SIZE, SATELLITES_COLOR, SATELLITES_SIZE, TITLE_COLOR)
 
 
 def construct_layout(width, height):
@@ -29,7 +29,7 @@ def construct_layout(width, height):
             yaxis=dict(noaxis, showspikes=False),
             zaxis=dict(noaxis, showspikes=False),
             aspectmode='data',
-            dragmode="orbit"),
+            dragmode='orbit'),
         paper_bgcolor=BACKGROUND_COLOR,
         plot_bgcolor=BACKGROUND_COLOR
     )
@@ -65,18 +65,36 @@ def construct_satellites(X=[], Y=[], Z=[], customdata=[]):
             color=SATELLITES_COLOR,
         ),
         customdata=customdata,
+        hovertemplate='<b>Name: %{customdata[0]}</b><br><br>'
+
+        'X: %{x}<br>'
+        'Y: %{y}<br>'
+        'Z: %{z}<br><br>'
+
+        'Region: %{customdata[1]}<br>'
+        'Launch date: %{customdata[2]}<br>'
+        'Type: %{customdata[3]}<br>'
+        'Purpose: %{customdata[4]}<br>'
+        '<extra></extra>'
+    )
+
+
+def construct_predictions(X=[], Y=[], Z=[]):
+    return dict(
+        type='scatter3d',
+        x=X,
+        y=Y,
+        z=Z,
+        mode='markers',
+        marker=dict(
+            size=PREDICTION_SIZE,
+            color=PREDICTION_COLOR,
+        ),
         hovertemplate=
-            '<b>Name: %{customdata[0]}</b><br><br>'
-
-            'X: %{x}<br>'
-            'Y: %{y}<br>'
-            'Z: %{z}<br><br>'
-
-            'Region: %{customdata[1]}<br>'
-            'Launch date: %{customdata[2]}<br>'
-            'Type: %{customdata[3]}<br>'
-            'Purpose: %{customdata[4]}<br>'
-            '<extra></extra>'
+        'X: %{x}<br>'
+        'Y: %{y}<br>'
+        'Z: %{z}<br>'
+        '<extra></extra>'
     )
 
 

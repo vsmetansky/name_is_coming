@@ -37,6 +37,10 @@ def group_latest_by_name(satellites: List[Dict[str, str]]) -> Dict[str, str]:
     return {name: data.pop() for name, data in grouped.items()}
 
 
+def filter_satellites(satellites: List[Dict[str, str]], object_type='PAYLOAD', alive_only=False):
+    return [s for s in satellites if s['OBJECT_TYPE'] == object_type and not s['DECAY_DATE'] if alive_only]
+
+
 def get_labels(satellite: Dict[str, str]):
     return [
         [satellite.get('OBJECT_NAME')],
