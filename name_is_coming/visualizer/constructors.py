@@ -67,19 +67,19 @@ def construct_satellites(X=[], Y=[], Z=[], customdata=[]):
         customdata=customdata,
         hovertemplate='<b>Name: %{customdata[0]}</b><br><br>'
 
-        'X: %{x}<br>'
-        'Y: %{y}<br>'
-        'Z: %{z}<br><br>'
+        'LAT: %{customdata[1]}<br>'
+        'LON: %{customdata[2]}<br>'
+        'ALT: %{customdata[3]}<br><br>'
 
-        'Region: %{customdata[1]}<br>'
-        'Launch date: %{customdata[2]}<br>'
-        'Type: %{customdata[3]}<br>'
-        'Purpose: %{customdata[4]}<br>'
+        'Region: %{customdata[4]}<br>'
+        'Launch date: %{customdata[5]}<br>'
+        'Type: %{customdata[6]}<br>'
+        'Purpose: %{customdata[7]}<br>'
         '<extra></extra>'
     )
 
 
-def construct_predictions(X=[], Y=[], Z=[]):
+def construct_predictions(X=[], Y=[], Z=[], customdata=[]):
     return dict(
         type='scatter3d',
         x=X,
@@ -91,9 +91,9 @@ def construct_predictions(X=[], Y=[], Z=[]):
             color=PREDICTION_COLOR,
         ),
         hovertemplate=
-        'X: %{x}<br>'
-        'Y: %{y}<br>'
-        'Z: %{z}<br>'
+        'LAT: %{customdata[1]}<br>'
+        'LON: %{customdata[2]}<br>'
+        'ALT: %{customdata[3]}<br><br>'
         '<extra></extra>'
     )
 

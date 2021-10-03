@@ -31,7 +31,7 @@ def current_location(time_now: Time, satellite: EarthSatellite) -> Tuple[Angle, 
     if abs(x) > 55000 or abs(y) > 55000 or abs(z) > 55000:
         x = y = z = 0
 
-    return x, y, z
+    return x, y, z, lat, lon, h
 
 
 def process_satellite(
@@ -42,12 +42,15 @@ def process_satellite(
     tle_0, tle_1, tle_2 = satellite_to_tle_triplet(satellite)
     satellite_ = EarthSatellite(tle_1, tle_2, tle_0, ts)
 
-    X, Y, Z = current_location(time_now, satellite_)
+    X, Y, Z, lat, lon, h = current_location(time_now, satellite_)
 
     satellite.update({
         'X': X,
         'Y': Y,
         'Z': Z,
+        'lat': lat,
+        'lon': lon,
+        'h': h
     })
 
 
