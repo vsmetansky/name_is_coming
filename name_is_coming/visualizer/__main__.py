@@ -50,11 +50,55 @@ app.layout = html.Div((
             multi=False
         ),
     ), style={
-        'width': '10vw',
+        'width': '12vw',
         'position': 'absolute',
         'top': '10vh',
         'left': '5vw',
-    })
+    }),
+    html.A(html.Button('About space trash problem', className='three columns',  style={
+                     'background-color': "#0a0a0a",
+                     'color': 'white',
+                     'width': '12vw',
+                     'height': '2vw',
+                     'position': 'absolute',
+                     'top': 190,
+                     'left': "5vw"}
+                     ),  target="_blank",
+    href='https://www.nasa.gov/mission_pages/station/news/orbital_debris.html'),
+
+    html.A(html.Button('Impact and images of debris', className='three columns',  style={
+                     'background-color': "#0a0a0a",
+                     'color': 'white',
+                     'width': '12vw',
+                     'height': '2vw',
+                     'position': 'absolute',
+                     'top': 240,
+                     'left': "5vw"}
+                     ),  target="_blank",
+    href='https://www.orbitaldebris.jsc.nasa.gov/photo-gallery/'),
+
+    html.A(html.Button('The latest orbital debris news', className='three columns',  style={
+                     'background-color': "#0a0a0a",
+                     'color': 'white',
+                     'width': '12vw',
+                     'height': '2vw',
+                     'position': 'absolute',
+                     'top': 290,
+                     'left': "5vw"}
+                     ),  target="_blank",
+    href='https://orbitaldebris.jsc.nasa.gov/quarterly-news/'),
+
+    html.A(html.Button('Space Track Database', className='three columns',  style={
+                     'background-color': "#0a0a0a",
+                     'color': 'white',
+                     'width': '12vw',
+                     'height': '2vw',
+                     'position': 'absolute',
+                     'top': 340,
+                     'left': "5vw"}
+                     ),  target="_blank",
+    href='https://www.space-track.org/'),
+
 ))
 
 

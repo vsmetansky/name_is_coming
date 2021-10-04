@@ -20,7 +20,7 @@ def construct_layout(width, height):
     return go.Layout(
         autosize=True,
         width=width, height=height,
-        title='Debris map',
+        title='Debris map 101',
         titlefont=dict(family='Courier New', color=TITLE_COLOR),
         showlegend=False,
         uirevision=True,
@@ -67,14 +67,19 @@ def construct_satellites(X=[], Y=[], Z=[], customdata=[]):
         customdata=customdata,
         hovertemplate='<b>Name: %{customdata[0]}</b><br><br>'
 
-        'X: %{x}<br>'
-        'Y: %{y}<br>'
-        'Z: %{z}<br><br>'
+    #    'X: %{x}<br>'
+    #    'Y: %{y}<br>'
+    #    'Z: %{z}<br><br>'
 
         'Region: %{customdata[1]}<br>'
         'Launch date: %{customdata[2]}<br>'
         'Type: %{customdata[3]}<br>'
-        'Purpose: %{customdata[4]}<br>'
+    #    'Purpose: %{customdata[7]}<br>'
+
+    #    'Region: %{customdata[1]}<br>'
+    #    'Launch date: %{customdata[2]}<br>'
+    #    'Type: %{customdata[3]}<br>'
+    #    'Purpose: %{customdata[4]}<br>'
         '<extra></extra>'
     )
 
@@ -91,9 +96,10 @@ def construct_predictions(X=[], Y=[], Z=[]):
             color=PREDICTION_COLOR,
         ),
         hovertemplate=
-        'X: %{x}<br>'
-        'Y: %{y}<br>'
-        'Z: %{z}<br>'
+        # 'X: %{x}<br>'
+        # 'Y: %{y}<br>'
+        # 'Z: %{z}<br>'
+
         '<extra></extra>'
     )
 
@@ -111,7 +117,7 @@ def construct_figure(layout, *data):
 
 
 def Etopo(lon_area, lat_area, resolution):
-    data = Dataset("data/ETOPO1_Ice_g_gdal.grd", "r")
+    data = Dataset("/Users/inepp/name_is_coming/name_is_coming/name_is_coming/visualizer/ETOPO1_Ice_g_gdal.grd", "r")
 
     # Get data
     lon_range = data.variables['x_range'][:]

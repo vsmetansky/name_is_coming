@@ -57,7 +57,7 @@ def process_once(ts: Timescale, r: redis.Redis, objects_type, name_to_predict) -
 
     if name_to_predict:
         satellite = next((s for s in satellites if s['OBJECT_NAME'] == name_to_predict), None)
-        
+
         year, month, day, hour, minute, second = time_now.utc
 
         second = int(np.int64(np.floor(second)))
