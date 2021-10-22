@@ -1,37 +1,36 @@
-__all__ = (
-    'update',
-    'clear',
-    'retrieve',
-    'is_empty'
-)
-
-from typing import Dict, Tuple
+from typing import Dict, List
+import logging
 
 from aioredis import Redis
 
-from server.tle import group_latest_by_name
+from server.storage.satellite import group_latest_by_name, satellites_from_cached, satellites_to_cached
+
+logger = logging.getLogger(__name__)
 
 
 class KeyGenerator:
-    cache_key: str = 'tle_cache'
+    satellites_key: str = 'satellites_cache'
 
 
-async def update(r: Redis, entries: Tuple[Dict[str, str]]):
-    entries_to_update = await r.hgetall(KeyGenerator.cache_key)
+async def update_satellites(redis: Redis, satellites: List[Dict[str, str]]):
+    satellites = satellites_to_cached(satellites)
+    satellites = group_latest_by_name(satellites)
 
-    entries = group_latest_by_name(entries)
-    entries_to_update.update(entries)
+    satellites_to_update = await redis.hgetall(KeyGenerator.satellites_key)
 
-    await r.hset(KeyGenerator.cache_key, mapping=entries_to_update)
+    satellites_to_update.update(satellites)
 
-
-async def clear(r: Redis):
-    await r.delete(KeyGenerator.cache_key)
+    await redis.hset(KeyGenerator.satellites_key, satellites_to_update)
 
 
-async def retrieve(r: Redis) -> Dict[str, str]:
-    return await r.hgetall(KeyGenerator.cache_key)
+async def clear_satellites(redis: Redis):
+    await redis.delete(KeyGenerator.satellites_key)
 
 
-async def is_empty(r: Redis) -> bool:
-    return bool(await retrieve(r))
+async def get_satellites(redis: Redis) -> List[Dict[str, str]]:
+    satellites_cached = await redis.hgetall(KeyGenerator.satellites_key)
+    return satellites_from_cached(satellites_cached)
+
+
+async def is_empty(redis: Redis) -> bool:
+    return bool(await get_satellites(redis))
